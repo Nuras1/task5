@@ -1,0 +1,216 @@
+/* ===== BASE ===== */
+body {
+    background: #f8fafc;
+    font-family: Arial, sans-serif;
+}
+
+/* ===== GRID ===== */
+#content {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ===== CARD ===== */
+.music-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: 0.25s ease;
+}
+
+    .music-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    /* ACTIVE */
+    .music-card.active {
+        border: 1px solid #22c55e;
+        box-shadow: 0 0 18px rgba(34,197,94,0.4);
+    }
+
+/* ===== COVER ===== */
+.cover {
+    position: relative;
+}
+
+    .cover img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        transition: 0.3s;
+    }
+
+    .cover:hover img {
+        filter: brightness(0.75);
+    }
+
+/* ===== OVERLAY ===== */
+.overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 12px;
+    color: white;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+/* ===== LIKES ===== */
+.likes {
+    align-self: flex-start;
+    background: rgba(0,0,0,0.6); /* 🔥 исправил баг (было 0,0,0,0,8) */
+    padding: 4px 10px;
+    border-radius: 999px; /* 🔥 круглая форма */
+    font-size: 13px;
+}
+
+/* ===== PLAY BUTTON ===== */
+.play-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%; /* 🔥 теперь круглая */
+    border: none;
+    background: #22c55e;
+    color: white;
+    font-size: 24px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: 0.25s;
+    margin: auto;
+}
+
+.cover:hover .play-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.play-btn:hover {
+    background: #16a34a;
+}
+
+/* ===== TEXT ON COVER ===== */
+.bottom {
+    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.35);
+    padding: 6px 10px;
+    border-radius: 10px;
+}
+
+    .bottom .title {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .bottom .artist {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+/* ===== SONG INFO ===== */
+.song-info {
+    padding: 10px;
+}
+
+/* TITLE */
+.song-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* ARTIST */
+.song-artist {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* HOVER */
+.music-card:hover .song-title {
+    color: #22c55e;
+}
+
+/* ACTIVE */
+.music-card.active .song-title {
+    color: #22c55e;
+}
+
+/* TEXT OVERFLOW */
+.song-title,
+.song-artist {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===== PLAYER ===== */
+.player-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+    .player-bar span {
+        width: 40px;
+        text-align: center;
+        color: #666;
+    }
+
+    .player-bar input[type="range"] {
+        flex: 1;
+        height: 4px;
+        border-radius: 10px;
+        background: #ddd;
+        cursor: pointer;
+    }
+
+        /* RANGE THUMB */
+        .player-bar input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #22c55e;
+            margin-top: -4px;
+        }
+
+        .player-bar input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #22c55e;
+            border: none;
+        }
+
+/* ===== LYRICS ===== */
+.lyrics {
+    max-height: 240px; /* 🔥 ограничение блока */
+    overflow-y: auto; /* 🔥 вертикальный скролл */
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+    /* текст */
+    .lyrics p {
+        font-size: 14px;
+        line-height: 1.4;
+        margin-bottom: 6px;
+    }
+
+    /* красивый скролл */
+    .lyrics::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .lyrics::-webkit-scrollbar-thumb {
+        background: #cbd5f5;
+        border-radius: 10px;
+    }
