@@ -17,7 +17,8 @@ namespace task5.Services
 
         public async Task<byte[]> Generate(string title, string artist, int seed)
         {
-            var path = Path.Combine(_env.ContentRootPath, "wwwroot", "covers");
+            var path = Path.Combine(_env.WebRootPath, "covers");
+            Console.WriteLine($"COVERS PATH: {path}");
 
             if (!Directory.Exists(path))
             {
