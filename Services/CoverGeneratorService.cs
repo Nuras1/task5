@@ -3,7 +3,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using Microsoft.AspNetCore.Hosting;
 
 namespace task5.Services
 {
@@ -50,8 +49,13 @@ namespace task5.Services
                 ctx.Fill(Color.Black.WithAlpha(0.35f));
             });
 
-            var titleFont = SystemFonts.CreateFont("Arial", 22, FontStyle.Bold);
-            var artistFont = SystemFonts.CreateFont("Arial", 16);
+            var fontPath = Path.Combine(_env.ContentRootPath, "wwwroot", "fonts", "Roboto-Regular.ttf");
+
+            var collection = new FontCollection();
+            var family = collection.Add(fontPath);
+
+            var titleFont = family.CreateFont(22, FontStyle.Bold);
+            var artistFont = family.CreateFont(16);
 
             image.Mutate(ctx =>
             {
