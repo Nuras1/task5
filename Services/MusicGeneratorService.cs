@@ -43,7 +43,7 @@ namespace task5.Services
 
                     Likes = FractionalHelperService.Generate(param.LikesAvg, likesRng),
 
-                    CoverUrl = BuildCoverUrl(title, artist, itemSeed),
+                    CoverUrl = $"/api/music/cover?title={title}&artist={artist}&seed={param.Seed}",
                     AudioUrl = BuildAudioUrl(itemSeed, param.Page),
 
                     Lyrics = GenerateLyrics(localeData, dataRng)

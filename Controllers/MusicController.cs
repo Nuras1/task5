@@ -12,6 +12,7 @@ namespace task5.Controllers
         private readonly AudioGeneratorService _audio;
         private readonly CoverGeneratorService _cover;
 
+
         public MusicController(
             MusicGeneratorService music,
             AudioGeneratorService audio,
