@@ -20,9 +20,13 @@ namespace task5.Services
             var path = Path.Combine(_env.WebRootPath, "covers");
             Console.WriteLine($"COVERS PATH: {path}");
 
-            if (!Directory.Exists(path))
+            Console.WriteLine($"FINAL PATH: {path}");
+            Console.WriteLine($"EXISTS: {Directory.Exists(path)}");
+
+            if (Directory.Exists(path))
             {
-                path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "covers");
+                foreach (var f in Directory.GetFiles(path))
+                    Console.WriteLine($"FOUND FILE: {f}");
             }
 
             var files = Directory.GetFiles(path);
@@ -63,7 +67,11 @@ namespace task5.Services
                 ctx.DrawText(title, titleFont, Color.White, new PointF(15, 20));
                 ctx.DrawText(artist, artistFont, Color.LightGray, new PointF(15, 270));
             });
-
+            Console.WriteLine("FILES:");
+            foreach (var f in files)
+            {
+                Console.WriteLine(f);
+            }
             using var ms = new MemoryStream();
             await image.SaveAsPngAsync(ms);
 
