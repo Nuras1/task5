@@ -5,14 +5,15 @@ namespace task5.Services
 {
     public class AudioGeneratorService
     {
-        private readonly string _sf2 = "wwwroot/soundfonts/FluidR3_GM.sf2";
+        private readonly string _sf2 = "wwwroot/soundfonts/general.sf2";
 
-        public byte[] Generate(int seed)
+        public byte[] Generate(int seed, int page)
         {
-            var rng = new Random(seed);
+            var finalSeed = seed + page * 1000;
+            var rng = new Random(finalSeed);
             int sampleRate = 44100;
 
-            int genre = seed % 4;
+            int genre = finalSeed % 4;
 
             var sf = new SoundFont(_sf2);
             var synth = new Synthesizer(sf, sampleRate);
@@ -51,7 +52,6 @@ namespace task5.Services
 
             for (int i = 0; i < total; i++)
             {
-                // 🎵 lead (арпеджио)
                 if (i % (beat / 4) == 0)
                 {
                     int note = root + new[] { 0, 4, 7, 12 }[rng.Next(4)];
@@ -59,13 +59,11 @@ namespace task5.Services
                     synth.NoteOff(leadCh, note);
                 }
 
-                // 🎹 pad (аккорды)
                 if (i % (beat * 4) == 0)
                 {
                     PlayChord(synth, padCh, root, rng);
                 }
 
-                // 🎸 bass
                 if (i % beat == 0)
                 {
                     int bass = root - 12;
@@ -73,7 +71,6 @@ namespace task5.Services
                     synth.NoteOff(bassCh, bass);
                 }
 
-                // 🥁 drums
                 if (i % beat == 0)
                 {
                     synth.NoteOn(drumCh, 36, 120);
@@ -95,8 +92,6 @@ namespace task5.Services
                 Render(synth, writer);
             }
         }
-
-        // 🎹 LoFi
         private void GenerateLoFi(Synthesizer synth, WaveFileWriter writer, Random rng)
         {
             int bpm = rng.Next(60, 80);
@@ -115,20 +110,17 @@ namespace task5.Services
 
             for (int i = 0; i < total; i++)
             {
-                // 🎹 мягкие аккорды
                 if (i % (beat * 2) == 0)
                 {
                     PlayChord(synth, chordCh, root, rng);
                 }
 
-                // 🎸 бас
                 if (i % beat == 0)
                 {
                     synth.NoteOn(bassCh, root - 12, 70);
                     synth.NoteOff(bassCh, root - 12);
                 }
 
-                // 🥁 легкий бит
                 if (i % (beat * 2) == beat)
                 {
                     synth.NoteOn(drumCh, 38, 60);
@@ -166,7 +158,6 @@ namespace task5.Services
 
             for (int i = 0; i < total; i++)
             {
-                // 🎵 мелодия
                 if (i % (beat / 2) == 0)
                 {
                     int note = scale[rng.Next(scale.Length)];
@@ -174,13 +165,11 @@ namespace task5.Services
                     synth.NoteOff(leadCh, note);
                 }
 
-                // 🎹 аккорды
                 if (i % (beat * 4) == 0)
                 {
                     PlayChord(synth, chordCh, root, rng);
                 }
 
-                // 🎸 бас
                 if (i % beat == 0)
                 {
                     synth.NoteOn(bassCh, root - 12, 90);

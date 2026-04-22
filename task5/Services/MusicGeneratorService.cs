@@ -8,36 +8,30 @@ namespace task5.Services
     {
         public List<Song> Generate(RequestParams param)
         {
-            var baseSeed = param.Seed + param.Page * 1000;
+            var baseSeed = SeedHelperService.Combine(param.Seed, param.Page);
 
-            Randomizer.Seed = new Random((int)baseSeed);
+            var fakerLocale = GetLocale(param.Region);
+            var localeData = LoadLocaleData(param.Region);
 
-            // 🔥 Faker (Bogus)
-            var fakerLocale = param.Region == "de" ? "de" : "en";
-            var faker = new Faker(fakerLocale);
-
-            // 🔥 JSON локализация
-            var localeFile = param.Region == "de" ? "de-DE" : "en-US";
-            var localeData = LoadLocale(localeFile);
-
-            var list = new List<Song>();
+            var result = new List<Song>();
 
             for (int i = 0; i < 20; i++)
             {
-                var dataRng = new Random((int)(baseSeed + i));
-                var likesRng = new Random((int)(baseSeed + 10000 + i));
+                int itemSeed = SeedHelperService.Combine(param.Seed, param.Page, i);
 
-                var title = faker.Commerce.ProductName();
-                var artist = faker.Name.FullName();
+                Randomizer.Seed = new Random(itemSeed);
+                var faker = new Faker(fakerLocale);
 
-                var album = dataRng.NextDouble() > 0.5
-                    ? faker.PickRandom("Single", "EP")
-                    : faker.Company.CompanyName();
+                var dataRng = new Random(itemSeed);
+                var likesRng = new Random(itemSeed + 10000);
 
-                var genre = faker.PickRandom(
-                    faker.Music.Genre(),
-                    faker.Commerce.Categories(1)[0]
-                );
+                string title = faker.Commerce.ProductName();
+                string artist = dataRng.NextDouble() > 0.5
+                                ? faker.Name.FullName()
+                                : faker.Company.CompanyName();
+
+                string album = GenerateAlbum(faker, dataRng);
+                string genre = GenerateGenre(faker);
 
                 var song = new Song
                 {
@@ -49,46 +43,72 @@ namespace task5.Services
 
                     Likes = FractionalHelperService.Generate(param.LikesAvg, likesRng),
 
-                    CoverUrl = $"/api/music/cover?title={Uri.EscapeDataString(title)}&artist={Uri.EscapeDataString(artist)}&seed={baseSeed + i}",
-                    AudioUrl = $"/api/music/audio?seed={baseSeed + i}",
+                    CoverUrl = BuildCoverUrl(title, artist, itemSeed),
+                    AudioUrl = BuildAudioUrl(itemSeed, param.Page),
 
-                    Description = faker.Lorem.Sentence(),
-
-                    // 🔥 ЛОКАЛИЗОВАННЫЕ ТЕКСТЫ
                     Lyrics = GenerateLyrics(localeData, dataRng)
                 };
 
-                list.Add(song);
+                result.Add(song);
             }
 
-            return list;
+            return result;
         }
 
-        private LyricsData LoadLocale(string locale)
+        private string GetLocale(string region)
         {
+            return region switch
+            {
+                "de" => "de",
+                _ => "en"
+            };
+        }
+
+        private LyricsData LoadLocaleData(string region)
+        {
+            var locale = region == "de" ? "de-DE" : "en-US";
             var path = Path.Combine("Data", $"{locale}.json");
 
             if (!File.Exists(path))
                 throw new Exception($"Locale file not found: {path}");
 
             var json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<LyricsData>(json);
+            return JsonSerializer.Deserialize<LyricsData>(json)!;
+        }
+
+        private string GenerateAlbum(Faker faker, Random rng)
+        {
+            return rng.NextDouble() > 0.5
+                ? faker.Company.CompanyName()
+                : faker.PickRandom("Single", "EP");
+        }
+
+        private string GenerateGenre(Faker faker)
+        {
+            return faker.Music.Genre();
+        }
+
+        private string BuildCoverUrl(string title, string artist, int seed)
+        {
+            return $"/api/music/cover?title={Uri.EscapeDataString(title)}&artist={Uri.EscapeDataString(artist)}&seed={seed}";
+        }
+
+        private string BuildAudioUrl(int seed, int page)
+        {
+            return $"/api/music/audio?seed={seed}&page={page}";
         }
 
         private List<string> GenerateLyrics(LyricsData data, Random rng)
         {
-            var lyrics = new List<string>();
+            var lines = new List<string>();
 
-            int totalLines = 8 + rng.Next(8);
-
-            // 🎤 создаём припев (hook)
+            int total = 8 + rng.Next(8);
             var hook = GenerateLine(data, rng);
 
-            for (int i = 0; i < totalLines; i++)
+            for (int i = 0; i < total; i++)
             {
                 string line;
 
-                // 🎶 каждая 4-я строка — припев
                 if (i % 4 == 3)
                 {
                     line = hook;
@@ -97,31 +117,21 @@ namespace task5.Services
                 {
                     int type = rng.Next(4);
 
-                    switch (type)
+                    line = type switch
                     {
-                        case 0:
-                            line = GenerateLine(data, rng);
-                            break;
-
-                        case 1:
-                            line = $"{data.Feel} {Pick(data.Subjects, rng)} when {GenerateLine(data, rng)}";
-                            break;
-
-                        case 2:
-                            line = GenerateShortLine(data, rng);
-                            break;
-
-                        default:
-                            line = GenerateLine(data, rng) + ", " + GenerateShortLine(data, rng);
-                            break;
-                    }
+                        0 => GenerateLine(data, rng),
+                        1 => $"{data.Feel} {Pick(data.Subjects, rng)} when {GenerateLine(data, rng)}",
+                        2 => GenerateShortLine(data, rng),
+                        _ => $"{GenerateLine(data, rng)}, {GenerateShortLine(data, rng)}"
+                    };
                 }
 
-                lyrics.Add(Cap(line));
+                lines.Add(Capitalize(line));
             }
 
-            return lyrics;
+            return lines;
         }
+
         private string GenerateLine(LyricsData data, Random rng)
         {
             return $"{Pick(data.Subjects, rng)} {Pick(data.Verbs, rng)} {Pick(data.Places, rng)}";
@@ -137,9 +147,9 @@ namespace task5.Services
             return arr[rng.Next(arr.Length)];
         }
 
-        private string Cap(string s)
+        private string Capitalize(string text)
         {
-            return char.ToUpper(s[0]) + s.Substring(1);
+            return char.ToUpper(text[0]) + text.Substring(1);
         }
     }
 }

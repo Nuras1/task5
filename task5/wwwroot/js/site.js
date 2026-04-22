@@ -22,12 +22,9 @@
 
     let isSeeking = false;
 
-    /* =========================
-       🔥 ОДИН обработчик кликов
-    ========================== */
+
     document.addEventListener("click", (e) => {
 
-        /* раскрытие строки (table) */
         const row = e.target.closest(".song-row");
         if (row) {
             const id = row.dataset.id;
@@ -37,7 +34,6 @@
             }
         }
 
-        /* play кнопка (gallery) */
         const btn = e.target.closest(".play-btn, .play-inline");
         if (btn) {
             const url = btn.dataset.url;
@@ -45,16 +41,12 @@
         }
     });
 
-    /* =========================
-       LOAD
-    ========================== */
     async function load(reset = false) {
         if (loading) return;
         loading = true;
 
         if (reset) {
-            page = 1;
-            content.innerHTML = "";
+            if (page === 1) content.innerHTML = "";
             pagination.innerHTML = "";
             window.scrollTo(0, 0);
         }
@@ -69,13 +61,9 @@
             renderGallery(data);
         }
 
-        page++;
         loading = false;
     }
 
-    /* =========================
-       TABLE
-    ========================== */
     function renderTable(data) {
         let html = `
         <table class="table table-hover align-middle">
@@ -133,10 +121,6 @@
                             <i class="bi bi-play-fill"></i>
                         </button>
 
-                        <button class="btn btn-outline-secondary btn-sm rounded-circle stop-inline">
-                            <i class="bi bi-stop-fill"></i>
-                        </button>
-
                         <div class="player-bar mt-2">
 
                             <span id="current-${s.id}">0:00</span>
@@ -167,9 +151,6 @@
         </div>`;
     }
 
-    /* =========================
-       PLAY
-    ========================== */
     window.playSong = function (url, btn) {
 
         const card = btn.closest(".music-card, .card");
@@ -227,18 +208,6 @@
         isSeeking = false;
     };
 
-    window.stopSong = function () {
-        player.pause();
-        player.currentTime = 0;
-
-        if (currentProgress) currentProgress.value = 0;
-
-        if (currentBtn) {
-            currentBtn.innerHTML = `<i class="bi bi-play-fill"></i>`;
-            currentBtn = null;
-        }
-    };
-
     function formatTime(sec) {
         if (!sec) return "0:00";
         const m = Math.floor(sec / 60);
@@ -246,30 +215,37 @@
         return `${m}:${s}`;
     }
 
-    /* =========================
-       PAGINATION
-    ========================== */
     function renderPagination() {
         pagination.innerHTML = `
-            <button class="btn btn-outline-primary btn-sm" onclick="changePage(-1)">Prev</button>
-            <span class="mx-2">Page ${page}</span>
-            <button class="btn btn-outline-primary btn-sm" onclick="changePage(1)">Next</button>
-        `;
+        <button class="btn btn-outline-primary btn-sm"
+                onclick="changePage(-1)"
+                ${page === 1 ? "disabled" : ""}>
+            Prev
+        </button>
+
+        <span class="mx-2 fw-bold">Page ${page}</span>
+
+        <button class="btn btn-outline-primary btn-sm"
+                onclick="changePage(1)">
+            Next
+        </button>
+    `;
     }
 
     window.changePage = function (dir) {
-        page += dir;
-        if (page < 1) page = 1;
+
+        const newPage = page + dir;
+
+        if (newPage < 1) return;
+
+        page = newPage;
         load(true);
     };
 
-    /* =========================
-       GALLERY
-    ========================== */
     function renderGallery(data) {
 
         content.className = "row g-4";
-        content.innerHTML = "";
+        if (page === 1) content.innerHTML = "";
         pagination.innerHTML = "";
 
         data.forEach(s => {
@@ -315,9 +291,6 @@
         });
     }
 
-    /* =========================
-       EVENTS
-    ========================== */
     tableBtn.onclick = () => { mode = "table"; load(true); };
     galleryBtn.onclick = () => { mode = "gallery"; load(true); };
 
@@ -333,6 +306,7 @@
     window.addEventListener("scroll", () => {
         if (mode !== "gallery") return;
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+            page++;
             load();
         }
     });

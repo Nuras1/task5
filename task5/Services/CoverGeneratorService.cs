@@ -3,36 +3,58 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using Microsoft.AspNetCore.Hosting;
 
 namespace task5.Services
 {
     public class CoverGeneratorService
     {
+        private readonly IWebHostEnvironment _env;
+
+        public CoverGeneratorService(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
+
         public async Task<byte[]> Generate(string title, string artist, int seed)
         {
-            var url = $"https://picsum.photos/300/300?random={seed}";
+            var path = Path.Combine(_env.ContentRootPath, "wwwroot", "covers");
 
-            using var http = new HttpClient();
-            var stream = await http.GetStreamAsync(url);
+            if (!Directory.Exists(path))
+                throw new Exception($"Covers folder not found: {path}");
 
-            using var image = await Image.LoadAsync<Rgba32>(stream);
+            var files = Directory.GetFiles(path);
 
-            // затемнение (overlay)
+            if (files.Length == 0)
+                throw new Exception("No images in covers folder");
+
+            var file = files[Math.Abs(seed) % files.Length];
+
+            using var image = await Image.LoadAsync<Rgba32>(file);
+
             image.Mutate(ctx =>
             {
-                ctx.Fill(Color.Black.WithAlpha(0.4f));
+                ctx.Resize(new ResizeOptions
+                {
+                    Size = new Size(300, 300),
+                    Mode = ResizeMode.Crop
+                });
+            });
+
+            image.Mutate(ctx =>
+            {
+                ctx.GaussianBlur(2);
+                ctx.Brightness(0.85f);
+                ctx.Fill(Color.Black.WithAlpha(0.35f));
             });
 
             var titleFont = SystemFonts.CreateFont("Arial", 22, FontStyle.Bold);
-            var artistFont = SystemFonts.CreateFont("Arial", 16, FontStyle.Regular);
+            var artistFont = SystemFonts.CreateFont("Arial", 16);
 
             image.Mutate(ctx =>
             {
-                // title
-                ctx.DrawText(title, titleFont, Color.White, new PointF(15, 200));
-
-                // artist
-                ctx.DrawText(artist, artistFont, Color.LightGray, new PointF(15, 240));
+                ctx.DrawText(title, titleFont, Color.White, new PointF(15, 20));
+                ctx.DrawText(artist, artistFont, Color.LightGray, new PointF(15, 270));
             });
 
             using var ms = new MemoryStream();

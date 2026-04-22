@@ -29,19 +29,17 @@ namespace task5.Controllers
         }
 
         [HttpGet("audio")]
-        public IActionResult Audio(int seed)
+        public IActionResult Audio(int seed, int page)
         {
-            return File(_audio.Generate(seed), "audio/wav");
+            var bytes = _audio.Generate(seed, page);
+            return File(bytes, "audio/wav");
         }
 
         [HttpGet("cover")]
         public async Task<IActionResult> GetCover(string title, string artist, int seed)
         {
-            var service = new CoverGeneratorService();
-            var bytes = await service.Generate(title, artist, seed);
-
+            var bytes = await _cover.Generate(title, artist, seed);
             return File(bytes, "image/png");
         }
-
     }
 }

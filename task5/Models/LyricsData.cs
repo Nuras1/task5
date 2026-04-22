@@ -2,9 +2,9 @@
 {
     public class LyricsData
     {
-        public string[] Subjects { get; set; }
-        public string[] Verbs { get; set; }
-        public string[] Places { get; set; }
-        public string Feel { get; set; }
+        public string[] Subjects { get; set; } = Array.Empty<string>();
+        public string[] Verbs { get; set; } = Array.Empty<string>();
+        public string[] Places { get; set; } = Array.Empty<string>();
+        public string Feel { get; set; } = "";
     }
 }
