@@ -21,7 +21,9 @@ namespace task5.Services
             var path = Path.Combine(_env.ContentRootPath, "wwwroot", "covers");
 
             if (!Directory.Exists(path))
-                throw new Exception($"Covers folder not found: {path}");
+            {
+                path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "covers");
+            }
 
             var files = Directory.GetFiles(path);
 
