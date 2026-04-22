@@ -16,4 +16,9 @@
 	      <PackageReference Include="SixLabors.Fonts" Version="2.1.3" />
 
   </ItemGroup>
+  <ItemGroup>
+  <Content Include="wwwroot/fonts/**">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </Content>
+</ItemGroup>
 </Project>
