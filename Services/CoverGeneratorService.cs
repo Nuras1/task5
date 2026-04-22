@@ -14,28 +14,7 @@ namespace task5.Services
         {
             _env = env;
         }
-        private async Task<byte[]> GenerateWithoutText(string file)
-        {
-            using var image = await Image.LoadAsync<Rgba32>(file);
 
-            image.Mutate(ctx =>
-            {
-                ctx.Resize(new ResizeOptions
-                {
-                    Size = new Size(300, 300),
-                    Mode = ResizeMode.Crop
-                });
-
-                ctx.GaussianBlur(2);
-                ctx.Brightness(0.85f);
-                ctx.Fill(Color.Black.WithAlpha(0.35f));
-            });
-
-            using var ms = new MemoryStream();
-            await image.SaveAsPngAsync(ms);
-
-            return ms.ToArray();
-        }
         public async Task<byte[]> Generate(string title, string artist, long seed)
         {
             try
@@ -43,18 +22,19 @@ namespace task5.Services
                 var path = Path.Combine(_env.WebRootPath, "covers");
 
                 if (!Directory.Exists(path))
-                    throw new Exception($"COVERS FOLDER NOT FOUND: {path}");
+                    throw new Exception("covers folder not found");
 
                 var files = Directory.GetFiles(path);
 
                 if (files.Length == 0)
-                    throw new Exception("No images in covers folder");
+                    throw new Exception("no images");
 
                 var index = (int)(Math.Abs(seed) % files.Length);
                 var file = files[index];
 
                 using var image = await Image.LoadAsync<Rgba32>(file);
 
+                // базовая обработка
                 image.Mutate(ctx =>
                 {
                     ctx.Resize(new ResizeOptions
@@ -68,7 +48,6 @@ namespace task5.Services
                     ctx.Fill(Color.Black.WithAlpha(0.35f));
                 });
 
-                // ===== ШРИФТ =====
                 FontFamily family;
 
                 var fontPath = Path.Combine(_env.WebRootPath, "fonts", "Roboto-Regular.ttf");
@@ -84,29 +63,12 @@ namespace task5.Services
                 }
                 else
                 {
-                    Console.WriteLine("NO FONTS → fallback");
-                    return await GenerateWithoutText(file);
+                    Console.WriteLine("NO FONTS → fallback WITHOUT TEXT");
+                    return await SaveImage(image);
                 }
 
-                if (File.Exists(fontPath))
-                {
-                    var collection = new FontCollection();
-                    family = collection.Add(fontPath);
-                }
-                else if (SystemFonts.Families.Any())
-                {
-                    family = SystemFonts.Families.First();
-                }
-                else
-                {
-                    Console.WriteLine("NO FONTS → fallback");
-                    return await GenerateWithoutText(file);
-                }
-
-
-                // ===== РИСУЕМ ТЕКСТ =====
-                var titleFont = family!.CreateFont(22, FontStyle.Bold);
-                var artistFont = family!.CreateFont(16);
+                var titleFont = family.CreateFont(22, FontStyle.Bold);
+                var artistFont = family.CreateFont(16);
 
                 image.Mutate(ctx =>
                 {
@@ -114,26 +76,26 @@ namespace task5.Services
                     ctx.DrawText(artist, artistFont, Color.LightGray, new PointF(15, 260));
                 });
 
-                using var ms = new MemoryStream();
-                await image.SaveAsPngAsync(ms);
-
-                return ms.ToArray();
+                return await SaveImage(image);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("COVER GENERATION ERROR: " + ex.Message);
+                Console.WriteLine("COVER ERROR: " + ex.Message);
 
-                // fallback: просто первая картинка
-                var fallbackPath = Path.Combine(_env.WebRootPath, "covers");
-                var fallbackFile = Directory.GetFiles(fallbackPath).First();
+                // fallback — просто картинка без обработки
+                var path = Path.Combine(_env.WebRootPath, "covers");
+                var file = Directory.GetFiles(path).First();
 
-                using var fallbackImage = await Image.LoadAsync<Rgba32>(fallbackFile);
-                using var ms = new MemoryStream();
-                await fallbackImage.SaveAsPngAsync(ms);
-
-                return ms.ToArray();
+                var bytes = await File.ReadAllBytesAsync(file);
+                return bytes;
             }
+        }
 
+        private async Task<byte[]> SaveImage(Image<Rgba32> image)
+        {
+            using var ms = new MemoryStream();
+            await image.SaveAsPngAsync(ms);
+            return ms.ToArray();
         }
     }
 }
