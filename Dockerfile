@@ -10,8 +10,9 @@ WORKDIR /app
 
 COPY --from=build /app/out ./
 
-EXPOSE 8080
+COPY --from=build /app/wwwroot ./wwwroot
 
+EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
 ENTRYPOINT ["dotnet", "task5.dll"]
