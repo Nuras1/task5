@@ -1,5 +1,7 @@
 bin/
 obj/
+.vs/
 .git/
 .gitignore
-*.sf2
+Dockerfile
+node_modules/
