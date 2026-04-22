@@ -198,3 +198,9 @@
 #pagination {
     margin-bottom: 40px;
 }
+.cover-lg img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 10px;
+}

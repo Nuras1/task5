@@ -167,9 +167,7 @@
         document.querySelectorAll(".music-card").forEach(c => c.classList.remove("active"));
         card.classList.add("active");
 
-        if (player.src !== location.origin + url) {
-            player.src = url;
-        }
+        player.src = url;
 
         if (player.paused) {
             player.play();
