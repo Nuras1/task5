@@ -58,7 +58,7 @@ namespace task5.Services
             var fontPath = Path.Combine(_env.ContentRootPath, "wwwroot", "fonts", "Roboto-Regular.ttf");
 
             var collection = new FontCollection();
-            var family = collection.Add(fontPath);
+            var family = SystemFonts.Families.First();
 
             var titleFont = family.CreateFont(22, FontStyle.Bold);
             var artistFont = family.CreateFont(16);
