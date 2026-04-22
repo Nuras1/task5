@@ -15,7 +15,7 @@ namespace task5.Services
             _env = env;
         }
 
-        public async Task<byte[]> Generate(string title, string artist, int seed)
+        public async Task<byte[]> Generate(string title, string artist, long seed)
         {
             var path = Path.Combine(_env.WebRootPath, "covers");
             Console.WriteLine($"COVERS PATH: {path}");
@@ -34,7 +34,8 @@ namespace task5.Services
             if (files.Length == 0)
                 throw new Exception("No images in covers folder");
 
-            var file = files[Math.Abs(seed) % files.Length];
+            var index = (int)(Math.Abs(seed) % files.Length);
+            var file = files[index];
 
             using var image = await Image.LoadAsync<Rgba32>(file);
 
