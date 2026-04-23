@@ -199,40 +199,37 @@
     margin-bottom: 40px;
 }
 .cover-lg {
+    position: relative;
     width: 100%;
-    aspect-ratio: 1 / 1;
+    height: 220px;
     overflow: hidden;
-    border-radius: 10px;
-    background: #f3f4f6;
+    border-radius: 12px;
 }
 
     .cover-lg img {
         width: 100%;
-        height: 100%; 
-        object-fit: cover; 
-        display: block;
+        height: 100%;
+        object-fit: cover;
     }
 
+/* ВОТ ГЛАВНЫЙ ФИКС */
 .cover-overlay {
     position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 12px;
-    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
     color: white;
 }
 
+/* текст как в gallery */
 .cover-title {
-    margin-top: auto;
-    text-align: center;
-    font-weight: 700;
-    font-size: 15px;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 .cover-artist {
-    text-align: center;
-    font-size: 13px;
-    opacity: 0.85;
+    font-size: 12px;
+    opacity: 0.8;
 }
