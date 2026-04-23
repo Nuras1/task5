@@ -172,27 +172,16 @@
         document.querySelectorAll(".music-card").forEach(c => c.classList.remove("active"));
         card.classList.add("active");
 
-        function playSong(url, btn) {
-            if (player.src !== location.origin + url) {
-                player.src = url;
-            }
-
-            if (!player.paused) {
-                player.pause();
-                btn.innerHTML = '<i class="bi bi-play-fill"></i>';
-                return;
-            }
-
-            player.play().then(() => {
-                btn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-            }).catch(() => { });
+        if (player.src !== location.origin + url) {
+            player.src = url;
+            player.load();
         }
 
         if (player.paused) {
-            player.play();
-
-            btn.innerHTML = `<i class="bi bi-pause-fill"></i>`;
-            currentBtn = btn;
+            player.play().then(() => {
+                btn.innerHTML = `<i class="bi bi-pause-fill"></i>`;
+                currentBtn = btn;
+            }).catch(() => { });
         } else {
             player.pause();
             btn.innerHTML = `<i class="bi bi-play-fill"></i>`;
@@ -212,6 +201,12 @@
                 `linear-gradient(to right, #22c55e ${percent}%, #ddd ${percent}%)`;
 
             currentTimeEl.innerText = formatTime(player.currentTime);
+        };
+
+        player.onended = () => {
+            if (currentBtn) {
+                currentBtn.innerHTML = `<i class="bi bi-play-fill"></i>`;
+            }
         };
     };
 
