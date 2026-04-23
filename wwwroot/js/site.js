@@ -172,7 +172,21 @@
         document.querySelectorAll(".music-card").forEach(c => c.classList.remove("active"));
         card.classList.add("active");
 
-        player.src = url;
+        function playSong(url, btn) {
+            if (player.src !== location.origin + url) {
+                player.src = url;
+            }
+
+            if (!player.paused) {
+                player.pause();
+                btn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                return;
+            }
+
+            player.play().then(() => {
+                btn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+            }).catch(() => { });
+        }
 
         if (player.paused) {
             player.play();

@@ -37,7 +37,8 @@ namespace task5.Services
             int bpm = rng.Next(120, 140);
             int sr = 44100;
             int beat = sr * 60 / bpm;
-            int total = sr * 60;
+            int seconds = rng.Next(120, 180);
+            int total = sr * seconds;
 
             int leadCh = 0;
             int padCh = 1;
@@ -97,7 +98,8 @@ namespace task5.Services
             int bpm = rng.Next(60, 80);
             int sr = 44100;
             int beat = sr * 60 / bpm;
-            int total = sr * 80;
+            int seconds = rng.Next(90, 150);
+            int total = sr * seconds;
 
             int chordCh = 0;
             int bassCh = 1;
@@ -142,7 +144,8 @@ namespace task5.Services
             int bpm = rng.Next(90, 110);
             int sr = 44100;
             int beat = sr * 60 / bpm;
-            int total = sr * 70;
+            int seconds = rng.Next(100, 160);
+            int total = sr * seconds;
 
             int leadCh = 0;
             int chordCh = 1;
@@ -183,7 +186,8 @@ namespace task5.Services
         private void GenerateAmbient(Synthesizer synth, WaveFileWriter writer, Random rng)
         {
             int sr = 44100;
-            int total = sr * 90;
+            int seconds = rng.Next(120, 240);
+            int total = sr * seconds;
 
             int padCh = 0;
 
