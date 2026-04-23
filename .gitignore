@@ -4,5 +4,3 @@ obj/
 *.user
 *.log
 node_modules/
-wwwroot/soundfonts/*.sf2
-*.sf2
