@@ -5,7 +5,17 @@ namespace task5.Services
 {
     public class AudioGeneratorService
     {
-        private readonly string _sf2 = "wwwroot/soundfonts/general.sf2";
+        private readonly IWebHostEnvironment _env;
+
+        public AudioGeneratorService(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
+
+        private string GetSoundFontPath()
+        {
+            return Path.Combine(_env.WebRootPath, "soundfonts", "general.sf2");
+        }
 
         public byte[] Generate(int seed, int page)
         {
@@ -15,7 +25,13 @@ namespace task5.Services
 
             int genre = finalSeed % 4;
 
-            var sf = new SoundFont(_sf2);
+            var sfPath = GetSoundFontPath();
+
+            if (!File.Exists(sfPath))
+                throw new Exception($"SF2 NOT FOUND: {sfPath}");
+
+            var sf = new SoundFont(sfPath);
+
             var synth = new Synthesizer(sf, sampleRate);
 
             using var ms = new MemoryStream();
