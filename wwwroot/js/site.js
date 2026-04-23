@@ -171,6 +171,7 @@
 
         if (player.paused) {
             player.play();
+
             btn.innerHTML = `<i class="bi bi-pause-fill"></i>`;
             currentBtn = btn;
         } else {
