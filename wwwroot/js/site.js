@@ -108,8 +108,13 @@
 
                 <div class="col-md-3">
                     <div class="cover-lg">
-                        <img src="${s.coverUrl}">
-                    </div>
+    <img src="${s.coverUrl}">
+
+    <div class="cover-overlay">
+        <div class="cover-title">${s.title}</div>
+        <div class="cover-artist">${s.artist}</div>
+    </div>
+</div>
                 </div>
 
                 <div class="col-md-9">
