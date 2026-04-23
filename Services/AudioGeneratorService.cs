@@ -5,93 +5,31 @@ namespace task5.Services
 {
     public class AudioGeneratorService
     {
-        private readonly IWebHostEnvironment _env;
-
-        public AudioGeneratorService(IWebHostEnvironment env)
-        {
-            _env = env;
-        }
-
-        private string GetSoundFontPath()
-        {
-            var path = Path.Combine(_env.WebRootPath, "soundfonts", "general.sf2");
-
-            if (!File.Exists(path))
-            {
-                path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "soundfonts", "general.sf2");
-            }
-
-            Console.WriteLine("SF2 PATH: " + path);
-            Console.WriteLine("EXISTS: " + File.Exists(path));
-
-            return path;
-        }
+        private readonly string _sf2 = "wwwroot/soundfonts/general.sf2";
 
         public byte[] Generate(int seed, int page)
         {
-            try
+            var finalSeed = seed + page * 1000;
+            var rng = new Random(finalSeed);
+            int sampleRate = 44100;
+
+            int genre = finalSeed % 4;
+
+            var sf = new SoundFont(_sf2);
+            var synth = new Synthesizer(sf, sampleRate);
+
+            using var ms = new MemoryStream();
+            using var writer = new WaveFileWriter(ms, new WaveFormat(sampleRate, 2));
+
+            switch (genre)
             {
-                var finalSeed = seed + page * 1000;
-                var rng = new Random(finalSeed);
-                int sampleRate = 44100;
-
-                int genre = finalSeed % 4;
-
-                var sfPath = GetSoundFontPath();
-
-                // 🔥 fallback если нет sf2
-                if (!File.Exists(sfPath))
-                {
-                    Console.WriteLine("SF2 NOT FOUND → returning silent audio");
-
-                    using var msFallback = new MemoryStream();
-                    using var writerFallback = new WaveFileWriter(msFallback, new WaveFormat(sampleRate, 2));
-
-                    for (int i = 0; i < sampleRate * 2; i++)
-                    {
-                        writerFallback.WriteSample(0f);
-                        writerFallback.WriteSample(0f);
-                    }
-
-                    writerFallback.Flush();
-                    return msFallback.ToArray();
-                }
-
-                var sf = new SoundFont(sfPath);
-                var synth = new Synthesizer(sf, sampleRate);
-
-                using var ms = new MemoryStream();
-                using var writer = new WaveFileWriter(ms, new WaveFormat(sampleRate, 2));
-
-                switch (genre)
-                {
-                    case 0: GenerateEDM(synth, writer, rng); break;
-                    case 1: GenerateLoFi(synth, writer, rng); break;
-                    case 2: GeneratePop(synth, writer, rng); break;
-                    default: GenerateAmbient(synth, writer, rng); break;
-                }
-
-                writer.Flush(); // 🔥 важно
-
-                return ms.ToArray();
+                case 0: GenerateEDM(synth, writer, rng); break;
+                case 1: GenerateLoFi(synth, writer, rng); break;
+                case 2: GeneratePop(synth, writer, rng); break;
+                default: GenerateAmbient(synth, writer, rng); break;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("AUDIO ERROR: " + ex.Message);
 
-                // fallback — тишина
-                using var ms = new MemoryStream();
-                using var writer = new WaveFileWriter(ms, new WaveFormat(44100, 2));
-
-                for (int i = 0; i < 44100 * 2; i++)
-                {
-                    writer.WriteSample(0f);
-                    writer.WriteSample(0f);
-                }
-
-                writer.Flush();
-                return ms.ToArray();
-            }
+            return ms.ToArray();
         }
 
         private void GenerateEDM(Synthesizer synth, WaveFileWriter writer, Random rng)
@@ -99,7 +37,7 @@ namespace task5.Services
             int bpm = rng.Next(120, 140);
             int sr = 44100;
             int beat = sr * 60 / bpm;
-            int total = sr * 8; // 🔥 было 60+
+            int total = sr * 60;
 
             int leadCh = 0;
             int padCh = 1;
@@ -128,9 +66,13 @@ namespace task5.Services
 
                 if (i % beat == 0)
                 {
-                    synth.NoteOn(bassCh, root - 12, 100);
-                    synth.NoteOff(bassCh, root - 12);
+                    int bass = root - 12;
+                    synth.NoteOn(bassCh, bass, 100);
+                    synth.NoteOff(bassCh, bass);
+                }
 
+                if (i % beat == 0)
+                {
                     synth.NoteOn(drumCh, 36, 120);
                     synth.NoteOff(drumCh, 36);
                 }
@@ -141,19 +83,25 @@ namespace task5.Services
                     synth.NoteOff(drumCh, 42);
                 }
 
+                if (i % (beat * 2) == beat)
+                {
+                    synth.NoteOn(drumCh, 38, 100);
+                    synth.NoteOff(drumCh, 38);
+                }
+
                 Render(synth, writer);
             }
         }
-
         private void GenerateLoFi(Synthesizer synth, WaveFileWriter writer, Random rng)
         {
             int bpm = rng.Next(60, 80);
             int sr = 44100;
             int beat = sr * 60 / bpm;
-            int total = sr * 8;
+            int total = sr * 80;
 
             int chordCh = 0;
             int bassCh = 1;
+            int drumCh = 9;
 
             synth.ProcessMidiMessage(0xC0 | chordCh, 4, 0, 0);
             synth.ProcessMidiMessage(0xC0 | bassCh, 33, 0, 0);
@@ -163,12 +111,26 @@ namespace task5.Services
             for (int i = 0; i < total; i++)
             {
                 if (i % (beat * 2) == 0)
+                {
                     PlayChord(synth, chordCh, root, rng);
+                }
 
                 if (i % beat == 0)
                 {
                     synth.NoteOn(bassCh, root - 12, 70);
                     synth.NoteOff(bassCh, root - 12);
+                }
+
+                if (i % (beat * 2) == beat)
+                {
+                    synth.NoteOn(drumCh, 38, 60);
+                    synth.NoteOff(drumCh, 38);
+                }
+
+                if (i % (beat / 2) == 0 && rng.NextDouble() > 0.5)
+                {
+                    synth.NoteOn(drumCh, 42, 40);
+                    synth.NoteOff(drumCh, 42);
                 }
 
                 Render(synth, writer);
@@ -177,22 +139,41 @@ namespace task5.Services
 
         private void GeneratePop(Synthesizer synth, WaveFileWriter writer, Random rng)
         {
+            int bpm = rng.Next(90, 110);
             int sr = 44100;
-            int total = sr * 8;
+            int beat = sr * 60 / bpm;
+            int total = sr * 70;
 
             int leadCh = 0;
+            int chordCh = 1;
+            int bassCh = 2;
 
             synth.ProcessMidiMessage(0xC0 | leadCh, 40, 0, 0);
+            synth.ProcessMidiMessage(0xC0 | chordCh, 0, 0, 0);
+            synth.ProcessMidiMessage(0xC0 | bassCh, 33, 0, 0);
 
             int[] scale = { 60, 62, 64, 65, 67, 69, 71 };
 
+            int root = scale[0];
+
             for (int i = 0; i < total; i++)
             {
-                if (i % (sr / 2) == 0)
+                if (i % (beat / 2) == 0)
                 {
                     int note = scale[rng.Next(scale.Length)];
                     synth.NoteOn(leadCh, note, 100);
                     synth.NoteOff(leadCh, note);
+                }
+
+                if (i % (beat * 4) == 0)
+                {
+                    PlayChord(synth, chordCh, root, rng);
+                }
+
+                if (i % beat == 0)
+                {
+                    synth.NoteOn(bassCh, root - 12, 90);
+                    synth.NoteOff(bassCh, root - 12);
                 }
 
                 Render(synth, writer);
@@ -202,7 +183,7 @@ namespace task5.Services
         private void GenerateAmbient(Synthesizer synth, WaveFileWriter writer, Random rng)
         {
             int sr = 44100;
-            int total = sr * 8;
+            int total = sr * 90;
 
             int padCh = 0;
 
@@ -212,21 +193,27 @@ namespace task5.Services
 
             for (int i = 0; i < total; i++)
             {
-                if (i % (sr * 2) == 0)
+                if (i % (sr * 5) == 0)
+                {
                     PlayChord(synth, padCh, root, rng);
+                }
+
+                if (i % (sr * 10) == 0)
+                {
+                    root += rng.Next(-3, 3);
+                }
 
                 Render(synth, writer);
             }
         }
-
         private void PlayChord(Synthesizer synth, int ch, int root, Random rng)
         {
             int[][] chords =
             {
-                new[]{0,4,7},
-                new[]{0,3,7},
-                new[]{0,4,11}
-            };
+        new[]{0,4,7},
+        new[]{0,3,7},
+        new[]{0,4,11}
+    };
 
             var chord = chords[rng.Next(chords.Length)];
 
